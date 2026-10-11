@@ -68,7 +68,7 @@ box(s, 43, 290, 1194, 200, CHIP, stroke=EDGE, radius=0.04)
 label(s, 63, 296, 400, 30, "GIN backend", size=19, bold=True, align="left")
 box(s, 73, 330, 360, 130, GRN_DK, stroke=GRN, body="GDAKI\nWQE + doorbell\nIB / RoCE, ConnectX-6 Dx+", size=15)
 box(s, 459, 330, 360, 130, LINK_DK, stroke=LINK, body="Proxy\n64-byte descriptor, CPU proxy\nany RDMA NIC", size=15)
-box(s, 845, 330, 362, 130, GRN_DK, stroke=GRN, body="EFA GDA\nWQE + doorbell\nEFA, NCCL 2.31.2+", size=15)
+box(s, 845, 330, 362, 130, GRN_DK, stroke=GRN, body="EFA GDA\nWQE + doorbell\nEFA, NCCL 2.31", size=15)
 for cx, col in ((253, WHITE), (639, LINK), (1026, WHITE)):
     arrow(s, cx, 230, cx, 330, color=col)
 for cx, col in ((253, WHITE), (639, LINK), (1026, WHITE)):
@@ -90,10 +90,10 @@ label(s, 43, 590, 1190, 30, "Green: GIN GDAKI (GPU path).  Blue: GIN Proxy (CPU 
 
 # ------------------------------------------------------------------ 3. GIN on EFA
 s = d.slide().s
-title(s, "GIN on AWS EFA: two modes",
-      "Green: GPU.  Blue: CPU on the path.  Yellow: EFA.  Grey: requirements")
-for x, head_, sub in [(43, "Host-proxy mode", "CPU proxy thread issues ops"),
-                      (653, "Kernel backend (EFA GDA)", "GPU builds the WQE, rings the doorbell")]:
+title(s, "GIN on AWS EFA: proxy path and EFA GDA",
+      "Green: GPU.  Blue: CPU on the path.  Yellow: EFA")
+for x, head_, sub in [(43, "GIN proxy (aws-ofi-nccl)", "CPU proxy thread issues ops"),
+                      (653, "NCCL_GIN_TYPE_EFA_GDA", "GPU kernel issues Put / Signal / Flush")]:
     label(s, x, 112, 584, 30, head_, size=18, bold=True)
     label(s, x, 142, 584, 24, sub, size=14, color=MUTED)
     box(s, x, 176, 584, 300, CHIP, stroke=EDGE, radius=0.04)
@@ -103,13 +103,10 @@ box(s, 83, 282, 504, 56, LINK_DK, stroke=LINK, body="CPU proxy -> libfabric (efa
 arrow(s, 335, 338, 335, 368)
 box(s, 83, 368, 504, 56, YEL_DK, stroke=YEL, body="EFA (SRD)", size=15)
 box(s, 693, 196, 504, 56, GRN_DK, stroke=GRN, body="GPU kernel (ncclGin)", size=15)
-arrow(s, 945, 252, 945, 368)
-label(s, 955, 296, 260, 30, "auto-selected", size=13, color=MUTED, align="left")
+arrow(s, 945, 252, 945, 282)
+box(s, 693, 282, 504, 56, GRN_DK, stroke=GRN, body="efa-dp-direct (inside NCCL)", size=15)
+arrow(s, 945, 338, 945, 368)
 box(s, 693, 368, 504, 56, YEL_DK, stroke=YEL, body="EFA (SRD)", size=15)
-label(s, 43, 490, 584, 30, "NCCL 2.31.2+ · GDRCopy 2.5+", size=14, color=MUTED)
-label(s, 653, 490, 584, 30, "NCCL 2.31.2+ · GDRCopy 2.5+", size=14, color=MUTED)
-label(s, 653, 520, 584, 30, "+ Libfabric 2.6.0+ · supported EFA instance", size=14, color=MUTED)
-label(s, 43, 560, 1190, 30, "source: aws-ofi-nccl v1.21.0, NCCL 2.31.2 release notes", size=13, color=MUTED, align="left")
 d.save(OUT)
 # ZN-24: テンプレートのロゴ、著作権表示、ヘッダー、フッターを必ず消してから使う
 sys.path.insert(0, "/Users/akazawt/works/data-science/claudecode/.claude/skills/review-html/packs/zenn-doc/templates")
