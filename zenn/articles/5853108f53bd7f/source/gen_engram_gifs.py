@@ -298,7 +298,80 @@ def get_frame(t):
 
 
 PNK_DK = (80, 30, 46)
-for name, fn, dur, stills in [("engram-lookup.gif", lookup_frame, 8.8, [12, 36, 58, 78, 104]),
+
+# ---------------------------------------------------------------- 4. concrete example (paper Figure 1 / 7)
+SENT = ["Only", "Alexander", "the", "Great", "could", "tame", "the", "horse"]
+GATE = [0.05, 0.15, 0.10, 0.95, 0.10, 0.05, 0.05, 0.10]   # illustrative, after paper Figure 7
+LEG4 = "Pink: n-gram and its row ids.  Yellow: table rows.  Green: gate and residual"
+
+
+def example_frame(t):
+    img, g = canvas()
+    ph = [(1.6, "1. Look at position t = \"Great\"", "the tokens just before it are known"),
+          (3.4, "2. Take the n-grams that end at t", "2-gram \"the Great\", 3-gram \"Alexander the Great\""),
+          (5.4, "3. Hash each n-gram into row numbers", "8 heads each; 3 shown, numbers illustrative"),
+          (7.2, "4. Read those rows from the table", "16 rows out of millions"),
+          (9.4, "5. Gate opens where a phrase completes", "high on \"Great\", low elsewhere"),
+          (11.0, "6. Add gate · value to the residual", "gated value joins the residual")]
+    h, sb = phase(t, ph)
+    head(g, h, sb, LEG4)
+    # sentence
+    x0 = 40
+    xs = []
+    for i, w in enumerate(SENT):
+        wd = 26 + len(w) * 9
+        xs.append((x0, wd))
+        lit = i == 3
+        rbox(g, x0, 118, wd, 36, GRN_DK if lit else CHIP, GRN if lit else EDGE, width=3 if lit else 2)
+        text(g, x0 + wd / 2, 136, w, 14, TX)
+        x0 += wd + 8
+    if t >= 1.6:
+        for k, (a, lab) in enumerate([(2, "2-gram"), (1, "3-gram")]):
+            y = 168 + k * 18
+            xa = xs[a][0]; xb = xs[3][0] + xs[3][1]
+            g.line([*P(xa, y), *P(xb, y)], fill=PNK, width=int(3 * R))
+            text(g, xb + 8, y, lab, 12, PNK, "lm")
+    # hash -> rows
+    if t >= 3.4:
+        rows = [("the Great", [4112907, 15733021, 902114]), ("Alexander the Great", [7340551, 1188263, 12004719])]
+        for k, (ng, ids) in enumerate(rows):
+            y = 220 + k * 60
+            text(g, 40, y + 18, f"\"{ng}\"", 13, PNK, "lm")
+            for j, v in enumerate(ids):
+                on = t >= 3.4 + (k * 3 + j) * 0.3
+                if on:
+                    rbox(g, 250 + j * 120, y, 110, 36, PNK_DK, PNK)
+                    text(g, 305 + j * 120, y + 18, f"{v:,}", 12, TX)
+            text(g, 620, y + 18, "... 8 heads", 12, MUTED, "lm")
+    # table rows
+    if t >= 5.4:
+        rbox(g, 720, 200, 210, 150, CHIP, YEL)
+        text(g, 825, 190, "Engram table", 12, MUTED)
+        u = clamp((t - 5.4) / 1.5)
+        for j in range(int(5 * u + 0.999)):
+            yy = 212 + j * 22
+            g.rectangle([*P(735, yy), *P(915, yy + 14)], fill=YEL_DK, outline=YEL, width=int(1 * R))
+        text(g, 825, 345 - 10, "each row = a learned vector", 11, MUTED)
+    # gate bars
+    if t >= 7.2:
+        text(g, 40, 372, "gate", 13, GRN, "lm")
+        u = clamp((t - 7.2) / 1.6)
+        for i, (x, wd) in enumerate(xs):
+            hgt = 70 * GATE[i] * u
+            g.rectangle([*P(x + wd / 2 - 10, 450 - hgt), *P(x + wd / 2 + 10, 450)], fill=GRN if i == 3 else (60, 90, 70))
+        g.line([*P(40, 450), *P(x0, 450)], fill=EDGE, width=int(1 * R))
+    if t >= 9.4:
+        rbox(g, 690, 395, 250, 50, GRN_DK, GRN, width=3)
+        text(g, 815, 420, "h_t + gate · value", 15, TX)
+    text(g, 480, 515, "example sentence from the Engram paper, Figure 1; row ids and gate heights illustrative", 12, MUTED)
+    return img.resize((OW, OH), Image.LANCZOS)
+
+
+if os.environ.get("ONLY_EXAMPLE"):
+    save([example_frame(i / FPS) for i in range(int(11.0 * FPS))], "engram-example.gif", [10, 30, 55, 78, 105, 128])
+
+if not os.environ.get("ONLY_EXAMPLE"):
+  for name, fn, dur, stills in [("engram-lookup.gif", lookup_frame, 8.8, [12, 36, 58, 78, 104]),
                               ("engram-prefetch.gif", prefetch_frame, 8.0, [12, 40, 70, 94]),
                               ("engram-get.gif", get_frame, 7.6, [14, 40, 62, 88])]:
-    save([fn(i / FPS) for i in range(int(dur * FPS))], name, stills)
+      save([fn(i / FPS) for i in range(int(dur * FPS))], name, stills)

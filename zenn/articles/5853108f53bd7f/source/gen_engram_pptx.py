@@ -69,22 +69,22 @@ for x, head_, sub in [(43, "MoE (conditional computation)", "expert ids from the
     label(s, x, 142, 584, 24, sub, size=14, color=MUTED)
     box(s, x, 176, 584, 420, CHIP, stroke=EDGE, radius=0.04)
 # left
-box(s, 83, 196, 504, 50, GREY, stroke=EDGE, body="token ids", size=15)
+box(s, 83, 196, 504, 50, GREY, stroke=EDGE, body="token \"Great\"", size=15)
 arrow(s, 335, 246, 335, 270)
 box(s, 83, 270, 504, 50, GRN_DK, stroke=GRN, body="layers before layer l", size=15)
 arrow(s, 335, 320, 335, 344)
-box(s, 83, 344, 504, 50, GRN_DK, stroke=GRN, body="hidden state h  ->  router", size=15)
+box(s, 83, 344, 504, 50, GRN_DK, stroke=GRN, body="hidden state of \"Great\" -> router", size=15)
 arrow(s, 335, 394, 335, 418)
-box(s, 83, 418, 504, 50, PNK_DK, stroke=PNK, body="expert ids", size=15)
+box(s, 83, 418, 504, 50, PNK_DK, stroke=PNK, body="experts #17, #203, ... (6 of 384)", size=15)
 arrow(s, 335, 468, 335, 492)
 box(s, 83, 492, 504, 50, GRN_DK, stroke=GRN, body="experts (FFN)", size=15)
 label(s, 83, 552, 504, 30, "address known only when layer l runs", size=14, color=MUTED)
 # right
-box(s, 693, 196, 504, 50, GREY, stroke=EDGE, body="token ids", size=15)
+box(s, 693, 196, 504, 50, GREY, stroke=EDGE, body="tokens \"Alexander the Great\"", size=15)
 arrow(s, 945, 246, 945, 270)
-box(s, 693, 270, 504, 50, PNK_DK, stroke=PNK, body="hash of 2-, 3-, 4-grams", size=15)
+box(s, 693, 270, 504, 50, PNK_DK, stroke=PNK, body="hash \"the Great\", \"Alexander the Great\"", size=15)
 arrow(s, 945, 320, 945, 344)
-box(s, 693, 344, 504, 50, PNK_DK, stroke=PNK, body="row ids", size=15)
+box(s, 693, 344, 504, 50, PNK_DK, stroke=PNK, body="rows 4,112,907, 7,340,551, ...", size=15)
 arrow(s, 945, 394, 945, 418)
 box(s, 693, 418, 504, 50, YEL_DK, stroke=YEL, body="embedding table rows", size=15)
 arrow(s, 945, 468, 945, 492)
@@ -121,6 +121,29 @@ label(s, 735, 340, 140, 50, "rows", size=14, color=YEL)
 rank_pair(863, GRN_DK, GRN, "rank 0: get(row offset)\nflush_async, wait", GREY, EDGE, "rank 1: GPU not involved\nNIC reads its storage")
 arrow(s, 1130, 440, 1130, 296, color=YEL, width=3)
 label(s, 1145, 340, 100, 50, "rows", size=14, color=YEL)
+# ------------------------------------------------------------------ 3. sparse compute vs sparse memory
+s = d.slide().s
+title(s, "Two kinds of sparsity per token (DeepSeek-V4.1-Flash)",
+      "Green: used for this token (positions illustrative).  Grey: not used.  Yellow: Engram table")
+label(s, 43, 112, 584, 30, "MoE layer: sparse compute", size=18, bold=True)
+label(s, 653, 112, 584, 30, "Engram layer 1: sparse memory", size=18, bold=True)
+box(s, 43, 150, 584, 380, CHIP, stroke=EDGE, radius=0.04)
+box(s, 653, 150, 584, 380, CHIP, stroke=EDGE, radius=0.04)
+lit = {5, 41, 77, 130, 201, 333}
+for k in range(384):
+    r, c = divmod(k, 32)
+    x = 63 + c * 17
+    y = 170 + r * 22
+    on = k in lit
+    box(s, x, y, 13, 16, GRN if on else GREY, stroke=GRN if on else EDGE, radius=0.2, sw=0.5)
+label(s, 63, 450, 544, 30, "6 of 384 routed experts run their FFN", size=16)
+label(s, 63, 484, 544, 30, "cost: FLOPs of 6 experts", size=14, color=MUTED)
+box(s, 683, 180, 524, 240, YEL_DK, stroke=YEL, radius=0.02)
+for k in range(24):
+    x = 690 + (k * 97 % 510)
+    box(s, x, 184 + (k % 8) * 29, 6, 26, GRN, stroke=GRN, radius=0.0, sw=0.5)
+label(s, 673, 450, 544, 30, "24 of 384,006,168 rows are read", size=16)
+label(s, 673, 484, 544, 30, "the lookup itself: 24 × 256 bytes read", size=14, color=MUTED)
 d.save(OUT)
 # ZN-24: テンプレートのロゴ、著作権表示、ヘッダー、フッターを必ず消してから使う
 sys.path.insert(0, "/Users/akazawt/works/data-science/claudecode/.claude/skills/review-html/packs/zenn-doc/templates")
