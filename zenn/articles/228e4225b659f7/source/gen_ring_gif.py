@@ -21,7 +21,8 @@ from stack3d import BG, TX, MUTED, mix  # noqa: E402
 
 OUT_DIR = os.path.abspath(os.environ.get("OUT_DIR", "out"))
 os.makedirs(OUT_DIR, exist_ok=True)
-OUT = os.path.join(OUT_DIR, "ring-put.gif")
+N = int(os.environ.get("NPE", "4"))
+OUT = os.path.join(OUT_DIR, "ring-put.gif" if N == 4 else f"ring-put-{N}pe.gif")
 SC = 4 / 3
 FPS = 4
 EDGE = (70, 74, 80)
@@ -31,9 +32,9 @@ YEL, YEL_DK = (251, 211, 50), (80, 66, 14)
 CHIP = (22, 26, 30)
 WHITE = (255, 255, 255)
 MONO = "/System/Library/Fonts/Menlo.ttc"
-N = 4
-PX, PW, PY, PH = 60, 180, 120, 230
-STEP = 220
+PW, PY, PH = 180, 120, 230
+STEP = 220 if N > 2 else 360
+PX = (960 - (STEP * (N - 1) + PW)) // 2
 
 CODE = {
     "1": "nvshmem_init();  cudaSetDevice(nvshmem_team_my_pe(NVSHMEMX_TEAM_NODE));",
@@ -141,7 +142,7 @@ def s3(g, u):
         else:
             y = PY + PH + 30
             arrow(g, [(px(j) + PW / 2, PY + PH), (px(j) + PW / 2, y), (px(0) + PW / 2, y), (px(0) + PW / 2, PY + PH + 2)], col)
-    g.text(P(480, 430), "puts in flight; PE 3 wraps to PE 0", font=F(15), fill=MUTED, anchor="mm")
+    g.text(P(480, 430), f"puts in flight; PE {N - 1} wraps to PE 0", font=F(15), fill=MUTED, anchor="mm")
 
 
 def s4(g, u):
@@ -153,8 +154,9 @@ def s4(g, u):
 
 
 def s5(g, u):
-    base(g, "5  copy dst to the host and print", dst=1, recv=[3, 0, 1, 2] if u > 0 else None)
-    for k, v in enumerate([3, 0, 1, 2]):
+    got = [(k - 1) % N for k in range(N)]
+    base(g, "5  copy dst to the host and print", dst=1, recv=got if u > 0 else None)
+    for k, v in enumerate(got):
         if u > k / N:
             g.text(P(px(k) + PW / 2, PY + PH + 40), f"PE {k} got {v}", font=M(14), fill=TX, anchor="mm")
 
