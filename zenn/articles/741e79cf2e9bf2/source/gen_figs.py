@@ -76,20 +76,38 @@ arrow(s, 323, 442, 323, 486, YEL, 2.5)
 arrow(s, 957, 442, 957, 486)
 label(s, 43, 590, 1194, 30, "By default, same-node data does not go through the EFA device", size=15, color=YEL)
 
-# 2. efa hands off to shm
+# 2. efa hands off to shm: who owns which step
 s = d.slide().s
-title(s, "The efa provider hands a same-node peer to shm", "FI_EFA_ENABLE_SHM_TRANSFER decides whether the shm path exists")
-box(s, 43, 130, 360, 70, LINK_DK, stroke=LINK, body="write from NIXL\n(FI_REMOTE_CQ_DATA)", size=16)
-box(s, 460, 130, 360, 70, LINK_DK, stroke=LINK, body="efa provider\nis the peer local?", size=16)
-arrow(s, 403, 165, 460, 165)
-box(s, 877, 120, 360, 90, YEL_DK, stroke=YEL, body="default (=1)\nshm provider", size=16)
-box(s, 877, 250, 360, 90, GRN_DK, stroke=GRN_HI, body="FI_EFA_ENABLE_SHM_TRANSFER=0\nEFA device, RDMA write", size=15)
-arrow(s, 820, 160, 877, 160, YEL, 2.5)
-arrow(s, 820, 180, 877, 280, GRN_HI, 2.5)
-box(s, 43, 400, 1194, 150, CHIP, stroke=EDGE, radius=0.04)
-label(s, 63, 410, 1154, 30, "shm path", size=17, bold=True, color=YEL, align="left")
-label(s, 63, 445, 1154, 30, "GPU memory is handed over with CUDA IPC; the receiving process copies the bytes", size=15, align="left")
-label(s, 63, 495, 1154, 30, "EFA device path: RDMA write through the EFA device to the same-node peer", size=15, color=GRN_HI, align="left")
+title(s, "Who does what when NIXL writes to a same-node peer",
+      "FI_REMOTE_CQ_DATA is a libfabric flag; NIXL sets it, the libfabric providers act on it")
+lanes = [("SGLang", GRN_DK, GRN), ("NIXL\nLIBFABRIC backend", LINK_DK, LINK),
+         ("libfabric\nefa provider", YEL_DK, YEL), ("libfabric\nshm provider", YEL_DK, YEL)]
+for i, (name, fill, stroke) in enumerate(lanes):
+    y = 118 + i * 112
+    box(s, 43, y, 1194, 102, CHIP, stroke=EDGE, radius=0.04)
+    box(s, 55, y + 12, 200, 78, fill, stroke=stroke, body=name, size=15)
+box(s, 290, 139, 320, 60, GRN_DK, stroke=GRN, body="send the KV cache", size=15)
+box(s, 290, 251, 320, 60, LINK_DK, stroke=LINK, body="post an RDMA write\n1.1.0 fi_writedata / 1.4.0 fi_writemsg", size=13)
+arrow(s, 450, 199, 450, 251)
+box(s, 660, 263, 250, 36, YEL_DK, stroke=YEL, body="+ FI_REMOTE_CQ_DATA", size=14, radius=0.3)
+arrow(s, 610, 281, 660, 281, YEL, 2)
+box(s, 660, 363, 250, 60, YEL_DK, stroke=YEL, body="peer on this node?", size=15)
+arrow(s, 785, 299, 785, 363, YEL, 2)
+box(s, 975, 363, 250, 60, GREY, stroke=GRN_HI, body="EFA device\nRDMA write", size=14)
+arrow(s, 910, 393, 975, 393, GRN_HI, 2.5)
+label(s, 908, 352, 70, 36, "no, or\nshm off", size=11, color=GRN_HI)
+box(s, 660, 475, 250, 60, YEL_DK, stroke=YEL, body="flag set:\nskip the CMA fast path", size=14)
+arrow(s, 785, 423, 785, 475, YEL, 2.5)
+label(s, 795, 432, 160, 36, "yes, default (=1)", size=12, color=YEL, align="left")
+box(s, 975, 463, 250, 38, LINK_DK, stroke=LINK, body="GPU memory: CUDA IPC", size=13)
+box(s, 975, 509, 250, 38, RED_DK, stroke=RED, body="IPC setup fails: SAR", size=13)
+arrow(s, 910, 495, 975, 482, YEL, 2)
+arrow(s, 910, 515, 975, 528, YEL, 2)
+legend = [("SGLang", GRN_DK, GRN), ("NIXL", LINK_DK, LINK), ("libfabric", YEL_DK, YEL)]
+for i, (name, fill, stroke) in enumerate(legend):
+    x = 43 + i * 170
+    box(s, x, 580, 26, 20, fill, stroke=stroke, radius=0.2)
+    label(s, x + 32, 576, 130, 28, name, size=13, align="left")
 
 # 3. CUDA IPC on shm
 s = d.slide().s
