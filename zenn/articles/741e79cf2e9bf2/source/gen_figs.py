@@ -333,7 +333,7 @@ for x in (233, 433, 633):
     arrow(s, x + 30, 330, x, 330, YEL, 2)
 label(s, 63, 366, 600, 26, "white: read request      yellow: counter value returned", size=13, color=MUTED, align="left")
 box(s, 63, 430, 560, 200, GRN_DK, stroke=GRN, radius=0.06)
-label(s, 73, 436, 540, 26, "engine Pod (no hostNetwork)", size=15, bold=True)
+label(s, 73, 436, 540, 26, "engine Pod in the measured setup (no hostNetwork)", size=15, bold=True)
 box(s, 93, 472, 230, 64, GREY, stroke=EDGE, body="prefill\nTP0  TP1", size=15)
 box(s, 363, 472, 230, 64, GREY, stroke=EDGE, body="decode\nTP0  TP1", size=15)
 label(s, 73, 552, 540, 50, "hw_counters is not visible inside this Pod", size=14, color=RED)
