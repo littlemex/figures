@@ -317,7 +317,7 @@ title(s, "What was measured, and where", "A hardware counter of the EFA device, 
 box(s, 43, 110, 1194, 70, YEL_DK, stroke=YEL, radius=0.15)
 sh.textbox(s, t, 63, 118, 1154, 32, "/sys/class/infiniband/<device>/ports/1/hw_counters/rdma_write_bytes",
            size=21, color=WHITE, bold=True, align="center", anchor="middle", mono=True)
-label(s, 63, 150, 1154, 26, "reading this file returns the device's counter at that moment (fetched again if the last read is older than 10 ms)", size=13, color=YEL)
+label(s, 63, 150, 1154, 26, "reading this file returns the device's counter at that moment (fetched again if the last fetch is older than about 10 ms)", size=13, color=YEL)
 box(s, 43, 200, 820, 450, CHIP, stroke=EDGE, radius=0.03)
 label(s, 58, 206, 400, 26, "one node", size=14, color=MUTED, align="left")
 chain = [(63, "probe Pod\n(hostNetwork)\nreads the file", CHIP, WHITE),
