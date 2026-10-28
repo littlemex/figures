@@ -169,25 +169,24 @@ box(s.s, 43, 440, 1194, 70, CHIP, stroke=EDGE, radius=0.15,
 
 # ------------------------------------------------------------------ 4. readout (no head)
 s = d.slide()
-title(s.s, "Scoring an option: unembedding[ids] against the final hidden state",
-      "Green: this project's own code path.  Pale: the full matrix, never read whole.")
-legend(s.s, 108, [(GRN_HI, "gathered / used"), (CHIP, "full matrix, not read")])
+label(s.s, 43, 26, 1190, 40, "unembedding[ids] · hidden  ->  probabilities", size=26, bold=True, align="left")
+legend(s.s, 76, [(LINK, "input"), (GRN_HI, "gathered / used"), (CHIP, "full matrix, not read"), (WHITE, "op")])
 
 # -- declared options, left column
-opt_y = [190, 380]
+opt_y = [220, 410]
 opt_names = ["no", "yes"]
 for name, y in zip(opt_names, opt_y):
     box(s.s, 43, y, 110, 70, LINK_DK, stroke=LINK, body=name, size=18)
-    box(s.s, 183, y, 90, 70, CHIP, stroke=EDGE, body="id", size=15, color=MUTED)
+    box(s.s, 183, y, 90, 70, LINK_DK, stroke=LINK, body="id", size=15, color=WHITE)
     sh.arrow(s.s, t, 153, y + 35, 183, y + 35, color=WHITE, width=1.5)
-label(s.s, 43, 150, 280, 24, "declared options", size=13, color=MUTED, align="left")
-label(s.s, 43, 470, 280, 24, "token_ids  [k]", size=13, color=MUTED, align="left")
+label(s.s, 43, 180, 280, 24, "declared options", size=13, color=MUTED, align="left")
+label(s.s, 43, 500, 280, 24, "token_ids  [k]", size=13, color=MUTED, align="left")
 
 # -- the big, pale vocabulary matrix
-mat_x, mat_y, mat_w, mat_h = 400, 150, 150, 420
+mat_x, mat_y, mat_w, mat_h = 400, 180, 150, 420
 box(s.s, mat_x, mat_y, mat_w, mat_h, CHIP, stroke=EDGE, radius=0.04)
 label(s.s, mat_x, mat_y - 28, mat_w, 24, "lm_head.weight", size=14, bold=True, align="center")
-label(s.s, mat_x, mat_y + mat_h + 4, mat_w, 24, "[V, d]", size=15, color=GRN_HI, align="center")
+label(s.s, mat_x, mat_y + mat_h + 4, mat_w, 24, "[V, d]", size=15, color=MUTED, align="center")
 label(s.s, mat_x, mat_y + mat_h + 30, mat_w, 22, "V=248,320  d=2,048", size=11, color=MUTED, align="center")
 
 # two highlighted rows inside the pale matrix, at the two option rows' height
@@ -197,38 +196,38 @@ for y, oy in zip(row_ys, opt_y):
     sh.arrow(s.s, t, 273, oy + 35, mat_x + 6, y + 10, color=GRN_HI, width=1.5, dashed=True)
 
 # -- gathered rows, pulled out to their own small stack
-gx, gy0 = 620, 260
+gx, gy0 = 620, 290
+dot_x, dot_y = 850, 360
 for i, y in enumerate(row_ys):
     gy = gy0 + i * 70
     box(s.s, gx, gy, 170, 50, GRN_DK, stroke=GRN, body="row", size=14)
     sh.arrow(s.s, t, mat_x + mat_w, y + 10, gx, gy + 25, color=GRN_HI, width=1.5)
-label(s.s, gx, 198, 220, 24, "gathered  [k, d]", size=14, color=GRN_HI, align="left")
+    sh.arrow(s.s, t, gx + 170, gy + 25, dot_x, dot_y + 25 + (i - 0.5) * 10, color=GRN_HI, width=1.5)
+label(s.s, gx, 228, 220, 24, "gathered  [k, d]", size=14, color=GRN_HI, align="left")
 
 # -- final hidden state vector
-hx, hy = 620, 460
-box(s.s, hx, hy, 170, 60, LINK_DK, stroke=LINK, body="hidden state", size=14)
+hx, hy = 620, 490
+box(s.s, hx, hy, 170, 60, LINK_DK, stroke=LINK, body="final hidden state", size=14)
 label(s.s, hx, hy + 64, 220, 22, "[d]", size=13, color=MUTED, align="left")
 
 # -- dot product -> logits
-dot_x, dot_y = 850, 330
-box(s.s, dot_x, dot_y, 70, 70, CHIP, stroke=WHITE, body="·", size=28)
-sh.arrow(s.s, t, gx + 170, gy0 + 25, dot_x, dot_y + 25, color=GRN_HI, width=1.5)
+box(s.s, dot_x, dot_y, 70, 70, CHIP, stroke=WHITE, body="@", size=24, color=WHITE)
 sh.arrow(s.s, t, hx + 170, hy + 30, dot_x, dot_y + 45, color=LINK, width=1.5)
 
 logit_x = 970
-box(s.s, logit_x, 300, 130, 70, GRN_DK, stroke=GRN, body="logits", size=16)
-label(s.s, logit_x, 374, 170, 22, "[k]", size=13, color=MUTED, align="left")
-sh.arrow(s.s, t, dot_x + 70, dot_y + 35, logit_x, 335, color=WHITE, width=2)
+box(s.s, logit_x, 330, 130, 70, GRN_DK, stroke=GRN, body="logits", size=16)
+label(s.s, logit_x, 404, 170, 22, "[k]", size=13, color=MUTED, align="left")
+sh.arrow(s.s, t, dot_x + 70, dot_y + 35, logit_x, 365, color=WHITE, width=2)
 
 # -- softmax over k -> probabilities
 sm_x = 1140
-box(s.s, sm_x, 300, 97, 70, CHIP, stroke=WHITE, body="softmax\n(over k)", size=12)
-sh.arrow(s.s, t, logit_x + 130, 335, sm_x, 335, color=WHITE, width=2)
+box(s.s, sm_x, 330, 97, 70, CHIP, stroke=WHITE, body="softmax\n(over k)", size=12, color=WHITE)
+sh.arrow(s.s, t, logit_x + 130, 365, sm_x, 365, color=WHITE, width=2)
 
-prob_x, prob_y = 970, 440
+prob_x, prob_y = 970, 470
 box(s.s, prob_x, prob_y, 267, 70, GRN_HI, body="probabilities", size=16, color=CHIP)
 label(s.s, prob_x, prob_y + 74, 267, 22, "[k]", size=13, color=MUTED, align="center")
-sh.arrow(s.s, t, sm_x + 48, 370, prob_x + 133, prob_y, color=WHITE, width=2)
+sh.arrow(s.s, t, sm_x + 48, 400, prob_x + 133, prob_y, color=WHITE, width=2)
 
 d.save(OUT)
 print("saved", OUT)
