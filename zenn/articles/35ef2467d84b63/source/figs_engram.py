@@ -45,7 +45,7 @@ def engram_walk(skin="zenn-dark"):
         ("r3", "n-gram", "2 + 3",
          '<span class="nw">' + tag("2-gram") + chip("Red Riding", "w2") + '</span><span class="nw">' + tag("3-gram") + chip("Little Red Riding", "w3") + "</span>",
          t("<b>2. Take the n-grams that end here.</b> An n-gram is n tokens in a row. This model uses the 2-gram and the 3-gram ending at the current position, never the next token. At the start of a window, missing earlier tokens are filled with the compressed id of <|endoftext|>.",
-           "<b>2. ここで終わる n-gram を取る。</b>n-gram は、続けて並んだ n 個のトークンです。このモデルは、今の位置で終わる 2-gram と 3-gram を使い、次のトークンは使いません。窓の先頭で前のトークンが足りないときは、文章の終わりを表す <|endoftext|> の、そろえた後の番号で埋めます。") + SRCS("engram_lm/engram.py (NgramHash)")),
+           "<b>2. ここで終わる n-gram を取る。</b>n-gram は、続けて並んだ n 個のトークンです。このモデルは、現在地で終わる 2-gram と 3-gram を使い、次のトークンは使いません。窓の先頭で前のトークンが足りないときは、文章の終わりを表す <|endoftext|> の、そろえた後の番号で埋めます。") + SRCS("engram_lm/engram.py (NgramHash)")),
         ("r3", t("hash", "ハッシュ"), "8 + 8",
          '<span class="rs">' + tag("2-gram") + "".join(chip(f"{r:,}", "rw w2") for r in rows[:8]) + "</span>"
          + '<span class="rs">' + tag("3-gram") + "".join(chip(f"{r:,}", "rw w3") for r in rows[8:]) + "</span>",
