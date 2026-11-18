@@ -132,6 +132,46 @@ label(s, 663, 612, 286, 30, "5 of 6 blocks think", size=17, bold=True)
 label(s, 990, 512, 226, 66, "the 16 rows are\nfetched while\nblock 0 runs", size=14, color=GRN, bold=True)
 label(s, 43, 668, 1194, 30, "illustrative · dashed outline: build the name · the row numbers come from the token ids alone, before block 0", size=14, color=MUTED)
 
+# ---------------------------------------------------------------- n-grams ending at the current position
+# counts: WikiText-103 train split, GPT-2 tokens, exact match (zenmai-lab 7d12d41 data/train.bin)
+s = d.slide().s
+title(s, "n-grams: the tokens that end at the current position", ["data", "ids"])
+toks = ["The", "girl", "was", "called", "Little", "Red", "Riding"]
+x = 60
+pos = {}
+for w in toks:
+    wd = 30 + 15 * len(w)
+    box(s, x, 130, wd, 46, "data", body=w, size=18)
+    pos[w] = (x, wd)
+    x += wd + 10
+box(s, x, 130, 110, 46, "data", body="Hood ?", size=18, dash=MSO_LINE_DASH_STYLE.DASH)
+label(s, x - 20, 180, 150, 26, "next token", size=14, color=MUTED)
+rx, rw = pos["Riding"]
+label(s, rx - 40, 180, rw + 80, 26, "current position", size=14, color=YEL, bold=True)
+rows = [("1-gram", ["Riding"], 404, 41, "most often next: of (95 times)"),
+        ("2-gram", ["Red", "Riding"], 45, 40, ""),
+        ("3-gram", ["Little", "Red", "Riding"], 24, 24, "")]
+label(s, 60, 236, 330, 26, "n tokens ending here", size=15, color=MUTED, align="left")
+label(s, 470, 236, 220, 26, "seen in training", size=15, color=MUTED, align="left")
+label(s, 700, 236, 520, 26, "share followed by Hood", size=15, color=MUTED, align="left")
+for k, (name, ws, n, hood, note) in enumerate(rows):
+    y = 270 + k * 118
+    label(s, 60, y + 10, 90, 30, name, size=17, bold=True, align="left")
+    xx = 150
+    for w in ws:
+        wd = 26 + 13 * len(w)
+        box(s, xx, y, wd, 46, "ids", body=w, size=16)
+        xx += wd + 6
+    label(s, 470, y + 8, 200, 30, f"{n} times", size=17, bold=True, align="left")
+    W = 440
+    sh.rect(s, t, 700, y + 8, W, 30, fill=CHIP, stroke=EDGE, sw=1, shape=MSO_SHAPE.RECTANGLE)
+    box(s, 700, y + 8, max(4, round(W * hood / n)), 30, "ids", radius=0.0)
+    label(s, 1150, y + 8, 110, 30, f"{hood / n:.0%}", size=18, bold=True, align="left")
+    label(s, 700, y + 44, 520, 26, f"Hood {hood} of {n}" + (f" · {note}" if note else ""), size=13, color=MUTED, align="left")
+sh.rect(s, t, 48, 382, 1200, 228, fill=None, stroke=GRN, sw=2, shape=MSO_SHAPE.ROUNDED_RECTANGLE, radius=0.04)
+label(s, 60, 612, 700, 26, "Engram looks up the 2-gram and the 3-gram", size=16, color=GRN, bold=True, align="left")
+label(s, 43, 660, 1194, 30, "counts: WikiText-103 training text, exact GPT-2 tokens · Engram does not count; it reads numbers learned for each n-gram", size=13, color=MUTED)
+
 d.save(OUT)
 import strip_branding  # noqa: E402
 
