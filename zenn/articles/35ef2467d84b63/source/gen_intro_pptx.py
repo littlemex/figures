@@ -172,6 +172,62 @@ sh.rect(s, t, 48, 382, 1200, 228, fill=None, stroke=GRN, sw=2, shape=MSO_SHAPE.R
 label(s, 60, 612, 700, 26, "Engram looks up the 2-gram and the 3-gram", size=16, color=GRN, bold=True, align="left")
 label(s, 43, 660, 1194, 30, "counts: WikiText-103 training text, exact GPT-2 tokens · Engram does not count; it reads numbers learned for each n-gram", size=13, color=MUTED)
 
+# ---------------------------------------------------------------- Attention and Engram, side by side
+s = d.slide().s
+title(s, "Attention and Engram: same shape, different candidates", ["data", "ids", "backbone", "engram"])
+LX, RX, PW = 43, 687, 550
+frame(s, LX, 112, PW, 484); frame(s, RX, 112, PW, 484)
+label(s, LX, 118, PW, 30, "Attention (inside each block)", size=18, bold=True)
+label(s, RX, 118, PW, 30, "Engram (once, before block 1)", size=18, bold=True)
+ROWS = [(160, 120, "candidates", "different"), (296, 40, "query", "same"), (350, 40, "compare", "same"),
+        (404, 70, "weight", "different"), (488, 40, "apply", "same"), (542, 40, "add", "same")]
+for y, h, name, kind in ROWS:
+    label(s, 593, y + h / 2 - 21, 94, 20, name, size=11, color=MUTED)
+    label(s, 593, y + h / 2 - 1, 94, 22, kind, size=13, bold=True, color=(YEL if kind == "different" else WHITE))
+# row 1: candidates
+for i, tx in enumerate(["k₁ v₁", "k₂ v₂", "…", "kₜ vₜ"]):
+    box(s, LX + 30 + i * 128, 186, 112, 40, "data", body=tx, size=15)
+label(s, LX + 20, 160, PW - 40, 24, "from h₁ … hₜ, every position so far", size=13, color=MUTED, align="left")
+label(s, LX + 20, 232, PW - 40, 24, "t candidates, made from the context", size=14, bold=True, align="left")
+cx = RX + 18
+box(s, cx, 186, 128, 40, "data", body="Red Riding\nLittle Red Riding", size=11); cx += 128
+arrow(s, cx, 206, cx + 14, 206); cx += 14
+box(s, cx, 186, 86, 40, "ids", body="16 row IDs", size=12, dash=MSO_LINE_DASH_STYLE.DASH); cx += 86
+arrow(s, cx, 206, cx + 14, 206); cx += 14
+box(s, cx, 186, 84, 40, "engram", body="table", size=12); cx += 84
+arrow(s, cx, 206, cx + 14, 206); cx += 14
+box(s, cx, 186, 70, 40, "engram", body="W_kv", size=13); cx += 70
+arrow(s, cx, 206, cx + 14, 206); cx += 14
+box(s, cx, 186, 96, 40, "data", body="key, value", size=13)
+label(s, RX + 18, 160, PW - 36, 24, "picked by token IDs only, no search", size=13, color=YEL, align="left")
+label(s, RX + 18, 232, PW - 36, 24, "1 candidate, made from the n-gram", size=14, bold=True, align="left")
+# row 2: what is compared with the keys
+box(s, LX + 30, 296, 490, 40, "backbone", body="query q, from hₜ", size=14)
+box(s, RX + 30, 296, 490, 40, "backbone", body="hidden state hₜ", size=14)
+# row 3: compare
+box(s, LX + 30, 350, 490, 40, "backbone", body="q · kᵢ for every i  →  t scores", size=14)
+box(s, RX + 30, 350, 490, 40, "engram", body="hₜ · key  →  1 score", size=14)
+# row 4: weight
+box(s, LX + 30, 404, 230, 70, "backbone", body="softmax", size=15)
+for i, hh in enumerate([18, 44, 10, 30, 52, 14]):
+    sh.rect(s, t, LX + 280 + i * 34, 466 - hh, 24, hh, fill=BLU_DK, stroke=BLU, sw=1.2, shape=MSO_SHAPE.RECTANGLE)
+label(s, LX + 500, 440, 46, 20, "sum 1", size=11, color=MUTED, align="left")
+box(s, RX + 30, 404, 230, 70, "engram", body="sigmoid", size=15)
+sh.rect(s, t, RX + 290, 426, 220, 22, fill=CHIP, stroke=EDGE, sw=1, shape=MSO_SHAPE.RECTANGLE)
+box(s, RX + 290, 426, round(220 * 0.89), 22, "engram", radius=0.0)
+label(s, RX + 290, 450, 220, 20, "gate = 0.89", size=13, color=MUTED, align="left")
+# row 5: apply
+box(s, LX + 30, 488, 490, 40, "backbone", body="Σ wᵢ · vᵢ   (many values mixed)", size=14)
+box(s, RX + 30, 488, 490, 40, "engram", body="gate × value   (one value scaled)", size=14)
+# row 6: add
+box(s, LX + 30, 542, 490, 40, "backbone", body="hₜ + output", size=14)
+box(s, RX + 30, 542, 490, 40, "backbone", body="hₜ + output", size=14)
+for x0 in (LX, RX):
+    for y1, y2 in ((282, 296), (336, 350), (390, 404), (474, 488), (528, 542)):
+        arrow(s, x0 + 275, y1, x0 + 275, y2)
+label(s, 43, 604, 1194, 26, "Engram does not search: the row IDs come from the token IDs, and the only comparison sets how much of the one value to add", size=14, color=MUTED)
+label(s, 43, 632, 1194, 26, "the table holds learned numbers, not counts · the GPT's own attention still runs in every block", size=14, color=MUTED)
+
 d.save(OUT)
 import strip_branding  # noqa: E402
 
