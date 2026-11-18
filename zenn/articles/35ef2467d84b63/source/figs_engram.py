@@ -1,9 +1,9 @@
 """Figures of the Engram hands-on article (35ef2467d84b63) as html-embed blocks.
 
-engram_walk  stepper: the seven steps of one Engram layer at " the" of " Only Alexander the"
-alex_chart   chart:   P(" Great") after each block for the three variants
+engram_walk  stepper: the seven steps of one Engram layer at " Riding" of " The girl was called Little Red Riding"
+hood_chart   chart:   P(" Hood") after each block for the three variants
 
-Values come from the trace recorded with the published seed-1337 models (alexander.json, written by
+Values come from the trace recorded with the published seed-1337 models (redhood.json, written by
 zenmai-lab 7d12d41 engram_lm/record_trace.py) and from engram_lm/engram.py at the same commit.
 Still rules are one selector per line: core.snippet prefixes each line with the Stop condition.
 """
@@ -12,9 +12,9 @@ import os
 
 from core import t, bar, radios, frame_inputs, info_panel, select_css, snippet
 
-TRACE = json.load(open(os.environ.get("ALEX_TRACE", os.path.expanduser("~/tmp/engram/m/fig/source/alexander.json"))))
-POS = 2  # " the", followed by " Great"
-assert TRACE["tokens"][POS]["text"] == " the" and TRACE["tokens"][POS + 1]["text"] == " Great"
+TRACE = json.load(open(os.environ.get("TRACE", os.path.expanduser("~/tmp/engram/ex/redhood.json"))))
+POS = 6  # " Riding", followed by " Hood"
+assert TRACE["tokens"][POS]["text"] == " Riding" and TRACE["tokens"][POS + 1]["text"] == " Hood"
 
 
 def SRCS(f):
@@ -30,19 +30,20 @@ def _rows():
 
 
 def engram_walk(skin="zenn-dark"):
-    toks = TRACE["tokens"][:3]
+    toks = TRACE["tokens"][POS - 2:POS + 1]
     gate = TRACE["gates"][POS][0][0]
     rows = _rows()
     chip = lambda s, cls="": f'<span class="ch {cls}">{s}</span>'
     tag = lambda x: f'<span class="tg">{x}</span>'
     sp = lambda x: "␣" + x[1:] if x.startswith(" ") else x
+    cid = TRACE["tokens"][POS]["compressed_id"]
     steps = [
-        ("r3", t("compress", "番号をそろえる"), "231",
+        ("r3", t("compress", "番号をそろえる"), f"{cid:,}",
          "".join(chip(f'{sp(x["text"])}<small>{x["id"]} → {x["compressed_id"]}</small>') for x in toks),
-         t("<b>1. Compress the token ids.</b> Tokens that differ only in case, a leading space (␣) or similar normalisation share one id: \"␣the\" (262), \"the\" (1169) and \"The\" (464) all become 231. The id is used only to pick rows; the GPT still reads the 50,257 GPT-2 tokens.",
-           "<b>1. 番号をそろえる。</b>大文字と小文字、前の空白 (␣) などだけが違うトークンを 1 つの番号にまとめます。「␣the」(262)、「the」(1169)、「The」(464) はどれも 231 になります。この番号は行を選ぶためだけに使い、GPT 本体は GPT-2 の 50,257 個のトークンのまま読みます。") + SRCS("engram_lm/tokenizer.py")),
+         t("<b>1. Compress the token ids.</b> Tokens that differ only in case, a leading space (␣) or similar normalisation share one id: \"␣Riding\" (36032) and \"␣riding\" (10311) both become 7,780. The id is used only to pick rows; the GPT still reads the 50,257 GPT-2 tokens.",
+           "<b>1. 番号をそろえる。</b>大文字と小文字、前の空白 (␣) などだけが違うトークンを 1 つの番号にまとめます。「␣Riding」(36032) と「␣riding」(10311) は、どちらも 7,780 になります。この番号は行を選ぶためだけに使い、GPT 本体は GPT-2 の 50,257 個のトークンのまま読みます。") + SRCS("engram_lm/tokenizer.py")),
         ("r3", "n-gram", "2 + 3",
-         '<span class="nw">' + tag("2-gram") + chip("Alexander the", "w2") + '</span><span class="nw">' + tag("3-gram") + chip("Only Alexander the", "w3") + "</span>",
+         '<span class="nw">' + tag("2-gram") + chip("Red Riding", "w2") + '</span><span class="nw">' + tag("3-gram") + chip("Little Red Riding", "w3") + "</span>",
          t("<b>2. Take the n-grams that end here.</b> An n-gram is n tokens in a row. This model uses the 2-gram and the 3-gram ending at the current position, never the next token. At the start of a window, missing earlier tokens are filled with the compressed id of <|endoftext|>.",
            "<b>2. ここで終わる n-gram を取る。</b>n-gram は、続けて並んだ n 個のトークンです。このモデルは、今の位置で終わる 2-gram と 3-gram を使い、次のトークンは使いません。窓の先頭で前のトークンが足りないときは、文章の終わりを表す <|endoftext|> の、そろえた後の番号で埋めます。") + SRCS("engram_lm/engram.py (NgramHash)")),
         ("r3", t("hash", "ハッシュ"), "8 + 8",
@@ -137,7 +138,7 @@ def engram_walk(skin="zenn-dark"):
     return snippet(body, css, still, skin)
 
 
-def alex_chart(skin="zenn-dark"):
+def hood_chart(skin="zenn-dark"):
     vals = TRACE["lens"]["values"]
     series = [("e", "engram"), ("o", "engram_off"), ("b", "baseline")]
     W, H = 600, 150
@@ -169,14 +170,14 @@ def alex_chart(skin="zenn-dark"):
     }
     lab = lambda k, en, ja, cls: f'<label class="pill hot b-{k} {cls}" for="s-{k}">{t(en, ja)}</label>'
     ax = (X(0) + X(1)) / 2
-    body = (frame_inputs(radios("s", keys)) + '<div class="zr">' + bar("P(\"␣Great\") after each block", "各ブロックの後の「␣Great」の確率")
+    body = (frame_inputs(radios("s", keys)) + '<div class="zr">' + bar("P(\"␣Hood\") after each block", "各ブロックの後の「␣Hood」の確率")
             + f'<svg class="plot" viewBox="0 0 {W} {H+20}">{grid}{xt}'
             + f'<path class="add" d="M{ax:.1f} 4V{H-10}"/>'
             + f'{paths}{marks}<rect class="cov" x="26" y="0" width="{W-22}" height="{H}"/>'
             + f'<text class="ax add-t ten" x="{ax+5:.1f}" y="16">Engram added</text><text class="ax add-t tja" x="{ax+5:.1f}" y="16">Engram を足す</text></svg>'
             + '<div class="ctl lg">' + lab("e", "● with Engram", "● Engram あり", "le") + lab("o", "▲ lookup skipped (same weights)", "▲ 表引きを外す (同じ重み)", "lo")
             + lab("b", "■ trained without Engram", "■ Engram なしで学習", "lb") + lab("lens", "LogitLens", "LogitLens", "") + "</div>"
-            + f'<div class="hint">{t("Seed 1337, at \"␣the\" of \"Only Alexander the\". x: block (0 = first) · y: probability of the next token \"␣Great\" · dashed vertical line: where Engram is added", "seed 1337、「Only Alexander the」の「␣the」の位置。横: ブロック (0 が最初) ・ 縦: 次のトークン「␣Great」の確率 ・ 縦の破線: Engram を足す場所")}</div>'
+            + f'<div class="hint">{t("Seed 1337, at \"␣Riding\" of \"The girl was called Little Red Riding\". x: block (0 = first) · y: probability of the next token \"␣Hood\" · dashed vertical line: where Engram is added", "seed 1337、「The girl was called Little Red Riding」の「␣Riding」の位置。横: ブロック (0 が最初) ・ 縦: 次のトークン「␣Hood」の確率 ・ 縦の破線: Engram を足す場所")}</div>'
             + info_panel(info) + "</div>")
     css = """
 .plot{width:100%;height:auto;display:block}

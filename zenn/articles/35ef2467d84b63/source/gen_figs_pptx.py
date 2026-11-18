@@ -101,7 +101,7 @@ ys = [252, 300, 348, 396, 444, 492]
 for x0, n_build in [(83, 3), (693, 2)]:
     lw = 504 if x0 == 83 else 330
     lx = x0 if x0 == 83 else x0 + 174
-    box(s, x0, 176, 504, 44, "data", body="tokens  \"Alexander the Great\"", size=15)
+    box(s, x0, 176, 504, 44, "data", body="tokens  \"Little Red Riding Hood\"", size=15)
     arrow(s, lx + lw // 2, 220, lx + lw // 2, ys[0])
     for i, y in enumerate(ys):
         build = i < n_build
