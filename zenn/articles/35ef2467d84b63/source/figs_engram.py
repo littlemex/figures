@@ -155,6 +155,9 @@ def hood_chart(skin="zenn-dark"):
                       "o": f'<path class="mk m{k}" d="M{x:.1f} {y-5:.1f} L{x+5:.1f} {y+4:.1f} L{x-5:.1f} {y+4:.1f} Z"/>',
                       "b": f'<rect class="mk m{k}" x="{x-4:.1f}" y="{y-4:.1f}" width="8" height="8"/>'}[k]
     grid = "".join(f'<path class="gl" d="M24 {Y(p):.1f}H{W-20}"/><text class="ax" x="20" y="{Y(p)+4:.1f}" text-anchor="end">{p:g}</text>' for p in (0, 0.5, 1))
+    lab_y = {"e": Y(0.80), "b": Y(0.68), "o": Y(0.56)}
+    names = {"e": "● with Engram, last", "b": "■ trained without Engram, last", "o": "▲ lookup skipped (same weights), last"}
+    marks += "".join(f'<text class="ax el e{k}" x="{X(2):.1f}" y="{lab_y[k]:.1f}" text-anchor="start">{names[k]} {fin[k][-1]:.3f}</text>' for k in ("e", "b", "o"))
     xt = "".join(f'<text class="ax" x="{X(b):.1f}" y="{H+14}" text-anchor="middle">{b}</text>' for b in range(12))
     keys = ["0", "e", "o", "b", "lens"]
     info = {
@@ -189,10 +192,119 @@ def hood_chart(skin="zenn-dark"):
 .ln{fill:none;stroke-width:2.5}
 .le,.lo,.lb{font-weight:700}.le{border-color:var(--p1);color:var(--p1)}.lo{border-color:var(--p4);color:var(--p4)}.lb{border-color:var(--p2);color:var(--p2)}
 .ln.le{stroke:var(--p1)}.ln.lo{stroke:var(--p4);stroke-dasharray:2 4}.ln.lb{stroke:var(--p2);stroke-dasharray:8 4}
-.mk{stroke:#000;stroke-width:1}.mk.me{fill:var(--p1)}.mk.mo{fill:var(--p4)}.mk.mb{fill:var(--p2)}
+.mk{stroke:#000;stroke-width:1}.el{font-weight:700}.el.ee{fill:var(--p1)}.el.eb{fill:var(--p2)}.el.eo{fill:var(--p4)}.mk.me{fill:var(--p1)}.mk.mo{fill:var(--p4)}.mk.mb{fill:var(--p2)}
 .cov{fill:#000;transform-box:fill-box;transform-origin:100% 50%;animation:draw 3s ease forwards}
 @keyframes draw{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 .lg{margin-top:4px}
 """ + select_css(keys)
     still = """.cov{transform:scaleX(0)}"""
+    return snippet(body, css, still, skin)
+
+
+# ---------------------------------------------------------------- the value map (stepper, table fixed in the middle)
+_INT = json.load(open(os.path.expanduser("~/tmp/engram/ex/internals.json")))
+
+
+def engram_map(skin="zenn-dark"):
+    D = _INT; P = D["pos"]; toks = D["tokens"]; comp = D["compressed"]; ids = D["ids"]; hs = D["heads"]
+    hz = D["hash"]; g = D["gate"]
+    f = lambda x: f"{x:,}"
+    o = []; add = o.append
+    W, H = 760, 400
+    x = 4
+    for i, tk in enumerate(toks + ["␣Hood ?"]):
+        w = 16 + 7.2 * len(tk)
+        cls = "tk cur" if i == P else ("tk gh" if i > P else ("tk ng" if i >= P - 2 else "tk"))
+        add(f'<g class="{cls}"><rect x="{x:.0f}" y="4" width="{w:.0f}" height="24" rx="5"/><text x="{x + w/2:.0f}" y="21" text-anchor="middle">{tk}</text></g>')
+        if i == P: add(f'<text class="yl" x="{x + w/2:.0f}" y="40" text-anchor="middle">current position</text>')
+        x += w + 4
+    # 1-3 left top
+    add('<g class="gx g1"><text class="hd" x="4" y="58">1 compress the ids</text>')
+    for k, i in enumerate(range(P - 2, P + 1)):
+        add(f'<rect class="id" x="{4 + k*82}" y="64" width="78" height="20" rx="4"/><text class="nm" x="{43 + k*82}" y="78" text-anchor="middle">{ids[i]}→{comp[i]}</text>')
+    add('</g><g class="gx g2"><text class="hd" x="4" y="100">2 n-grams</text>')
+    add(f'<rect class="id d" x="4" y="106" width="96" height="18" rx="4"/><text class="nm" x="52" y="119" text-anchor="middle">({comp[P-1]}, {comp[P]})</text>')
+    add(f'<rect class="id w" x="106" y="106" width="140" height="18" rx="4"/><text class="nm" x="176" y="119" text-anchor="middle">({comp[P-2]}, {comp[P-1]}, {comp[P]})</text></g>')
+    add(f'<g class="gx g3"><text class="hd" x="4" y="138">3 × odd, XOR → one number</text><text class="nm" x="4" y="150">2-gram {f(hz["rolling_2gram"])}</text><text class="nm" x="4" y="161">3-gram {f(hz["rolling_3gram"])}</text></g>')
+    TY, BH = 186, 13.5
+    add(f'<g class="gx g4"><text class="hd" x="4" y="{TY-6}">4 mod a prime = row id</text>')
+    for c, h in enumerate(hs):
+        y = TY + c * BH
+        add(f'<text class="tn" x="4" y="{y+10}">{"2" if h["ngram"]==2 else "3"}-gram ÷{f(h["prime"])} → {f(h["local_row"])}</text><text class="tn b" x="160" y="{y+10}">row {f(h["table_row"])}</text>')
+    add('</g>')
+    X0, X1 = 262, 318
+    add(f'<text class="hd" x="{(X0+X1)/2}" y="{TY-18}" text-anchor="middle">table</text><text class="tn" x="{(X0+X1)/2}" y="{TY-6}" text-anchor="middle">1,049,422 × 64</text>')
+    for c, h in enumerate(hs):
+        y = TY + c * BH
+        add(f'<rect class="bd {"b2" if h["ngram"]==2 else "b3"}" x="{X0}" y="{y}" width="{X1-X0}" height="{BH-1}"/>')
+    add('<g class="gx g4 g5">')
+    for c, h in enumerate(hs):
+        y = TY + c * BH; ty = y + 1.5 + (BH - 4) * h["local_row"] / h["prime"]
+        add(f'<line class="pt" x1="248" y1="{y+6.5}" x2="{X0}" y2="{ty:.1f}"/><rect class="tc" x="{X0}" y="{ty-1:.1f}" width="{X1-X0}" height="2.2"/>')
+    add('</g>')
+    RX, CW = 338, 3
+    add(f'<g class="gx g5"><text class="hd" x="{RX+4}" y="{TY-6}">5 read the 16 rows</text>')
+    for c, h in enumerate(hs):
+        y = TY + c * BH; ty = y + 1.5 + (BH - 4) * h["local_row"] / h["prime"]
+        add(f'<line class="pl" x1="{X1}" y1="{ty:.1f}" x2="{RX}" y2="{y+6}"/><rect class="sp {"b2" if h["ngram"]==2 else "b3"}" x="{RX}" y="{y+1.5}" width="{64*CW}" height="{BH-4}"/>')
+    add(f'<text class="tn" x="{RX}" y="{TY + 16*BH + 10}">64 numbers per row, read by id</text></g>')
+    FX = 548
+    add(f'<g class="gx g6"><path class="pl" d="M{RX+192} {TY+100} C {RX+204} {TY+100}, {FX-14} {TY+16}, {FX} {TY+16}" fill="none"/><text class="hd" x="{FX}" y="{TY-6}">6 join</text><rect class="et" x="{FX}" y="{TY+4}" width="208" height="22"/>')
+    for c in range(1, 16): add(f'<line class="sep" x1="{FX + c*13:.0f}" y1="{TY+4}" x2="{FX + c*13:.0f}" y2="{TY+26}"/>')
+    add(f'<text class="tn" x="{FX}" y="{TY+38}">16 rows × 64 = 1,024 numbers</text></g>')
+    add(f'<g class="gx g7"><text class="hd" x="{FX}" y="{TY+60}">7 × W_kv (1,024 × 1,024), split</text><rect class="ky" x="{FX}" y="{TY+66}" width="102" height="22"/><text class="nm" x="{FX+51}" y="{TY+81}" text-anchor="middle">key 512</text><rect class="vl" x="{FX+106}" y="{TY+66}" width="102" height="22"/><text class="nm" x="{FX+157}" y="{TY+81}" text-anchor="middle">value 512</text></g>')
+    add(f'<g class="gx g8"><text class="hd" x="{FX}" y="{TY+112}">8 compare h with key, once</text><rect class="hb" x="{FX}" y="{TY+118}" width="70" height="22"/><text class="nm" x="{FX+35}" y="{TY+133}" text-anchor="middle">h</text><text class="nm" x="{FX+76}" y="{TY+133}">·</text><rect class="ky" x="{FX+86}" y="{TY+118}" width="40" height="22"/><text class="nm" x="{FX+106}" y="{TY+133}" text-anchor="middle">key</text><text class="nm" x="{FX+132}" y="{TY+133}">→ gate</text><text class="nm b" x="{FX+176}" y="{TY+133}">{g["gate"]:.3f}</text></g>')
+    add(f'<g class="gx g9"><text class="hd" x="{FX}" y="{TY+164}">9 add</text><text class="nm" x="{FX}" y="{TY+184}">h + {g["gate"]:.3f} × value → block 1</text><text class="tn" x="{FX}" y="{TY+200}">h[0]: {D["h_first6"][0]} → {D["h_plus_first6"][0]}</text></g>')
+    svg = f'<svg class="mp" viewBox="0 0 {W} {H}">{"".join(o)}</svg>'
+    m = D["multipliers"]
+    caps = [
+     t("<b>The map.</b> The table in the middle has 1,049,422 rows of 64 numbers in 16 ranges: 8 for the 2-gram, 8 for the 3-gram. Its numbers are learned, not counts. Step through with next.",
+       "<b>全体。</b>真ん中の柱が表で、1,049,422 行、1 行 64 個の数が 16 の範囲に分かれています。上の 8 範囲を 2-gram、下の 8 範囲を 3-gram が使います。表の中身は回数ではなく、学習で決まる数です。「次へ」で 1 段ずつ進みます。"),
+     t(f"<b>1. Compress the ids.</b> Tokens that differ only in case and the like share one id: ␣Riding {ids[P]} becomes {comp[P]}, as ␣riding does. Fixed, not learned.",
+       f"<b>1. 番号をそろえる。</b>大文字と小文字などだけが違うトークンを 1 つの番号にまとめます。「␣Riding」の {ids[P]} は {comp[P]} になり、「␣riding」も同じです。決まった対応表で、学習しません。"),
+     t(f"<b>2. Take the n-grams.</b> The 2-gram ({comp[P-1]}, {comp[P]}) and the 3-gram ({comp[P-2]}, {comp[P-1]}, {comp[P]}) end at the current position; the next token is not in them.",
+       f"<b>2. n-gram を作る。</b>CP で終わる 2-gram は ({comp[P-1]}, {comp[P]})、3-gram は ({comp[P-2]}, {comp[P-1]}, {comp[P]}) です。次の「Hood」は入りません。"),
+     t(f"<b>3. One big number each.</b> Each id is multiplied by a fixed odd number for its place and the products are XORed. Order now matters, and n-grams one token apart land far apart. m₀ = {f(m[0])}.",
+       f"<b>3. 1 つの大きな数にする。</b>番号に位置ごとの固定の奇数を掛けて、ビットごとに混ぜる XOR で合わせます。順番が区別され、1 語だけ違う並びも遠い数になります。m₀ = {f(m[0])}。"),
+     t("<b>4. Remainder = row.</b> Each big number is divided by 8 different primes, one per range; the remainder is the row in that range. Two n-grams can share a row in one range, but they share all 8 only if their big numbers are equal.",
+       "<b>4. 余りが行番号。</b>大きな数を範囲ごとに違う 8 個の素数で割り、余りをその範囲の行番号にします。1 つの範囲では別の並びと同じ行になりえますが、8 範囲すべてで同じになるのは、割る前の数が同じときだけです。"),
+     t("<b>5. Read the rows.</b> The 16 rows are read by their numbers. Nothing is searched or matched. The row numbers come from the token ids alone, so they are known before any block runs and can be fetched from outside GPU memory.",
+       "<b>5. 16 行を読む。</b>番号の行をそのまま読みます。探しも照合もしません。行番号はトークンの番号だけで決まるので、ブロックの計算の前に分かり、GPU の外に置いた表からも先に取ってこられます。"),
+     t("<b>6. Join.</b> 16 rows × 64 numbers = 1,024 numbers.", "<b>6. つなぐ。</b>16 行 × 64 個 = 1,024 個の数にします。"),
+     t("<b>7. Key and value.</b> The learned matrix W_kv turns the 1,024 numbers into 1,024 new ones; the first 512 are the key, the last 512 the value. Both are computed from the rows, not looked up.",
+       "<b>7. key と value。</b>学習した行列 W_kv で 1,024 個を作り直し、前半の 512 個を key、後半の 512 個を value にします。どちらも表から探した値ではなく、読んだ行から計算した値です。"),
+     t(f"<b>8. Gate.</b> The hidden state after block 0 and the key are compared once and turned into a number between 0 and 1: {g['gate']:.3f}.",
+       f"<b>8. ゲート。</b>ブロック 0 の後の隠れ状態と key を 1 回だけ比べて、0 と 1 の間の数にします。ここでは {g['gate']:.3f} です。"),
+     t(f"<b>9. Add.</b> The value times {g['gate']:.3f} is added to the hidden state, which goes on to block 1.",
+       f"<b>9. 足す。</b>value を {g['gate']:.3f} 倍して隠れ状態に足し、ブロック 1 に渡します。"),
+    ]
+    n = len(caps); keys = [str(i) for i in range(n)]
+    def nav(i):
+        return (f'<div class="nav n{i}">' + (f'<label class="pill" for="st-{i-1}">&#9664; {t("back", "戻る")}</label>' if i > 0 else "<span></span>")
+                + f'<span class="hint">{i} / {n-1}</span>'
+                + (f'<label class="pill" for="st-{i+1}">{t("next", "次へ")} &#9654;</label>' if i < n - 1 else f'<label class="pill" for="st-0">&#8634; {t("again", "最初から")}</label>') + "</div>")
+    body = (frame_inputs(radios("st", keys)) + '<div class="zr">' + bar("One Engram lookup, with the real values", "Engram の表引きを実際の値で追う")
+            + svg + '<div class="info">' + "".join(f'<div class="cap k{i}">{c}</div>' for i, c in enumerate(caps)) + "".join(nav(i) for i in range(n)) + "</div></div>")
+    rules = []
+    for i in range(1, n):
+        rules.append(f"#st-{i}:checked~.zr .gx{{opacity:.16}}")
+        rules.append(f"#st-{i}:checked~.zr .g{i}{{opacity:1}}")
+    for i in range(n):
+        rules.append(f"#st-{i}:checked~.zr .k{i}{{display:block}}#st-{i}:checked~.zr .n{i}{{display:flex}}")
+    css = """
+.mp{width:100%;height:auto;display:block}
+.mp text{fill:var(--fg);font-size:11px}.mp .hd{font-weight:700;font-size:11.5px}.mp .nm{font-family:Menlo,Consolas,monospace;font-size:9.5px}
+.mp .tn{font-family:Menlo,Consolas,monospace;font-size:8.2px;fill:var(--mut)}.mp .b{fill:var(--p1);font-weight:700}.mp .yl{fill:var(--p3);font-weight:700;font-size:10px}
+.tk rect{fill:#1b1e23;stroke:var(--line)}.tk.ng rect{stroke:var(--p3)}.tk.cur rect{fill:var(--p3-bg);stroke:var(--p3);stroke-width:2}.tk.gh rect{fill:#000;stroke:var(--mut);stroke-dasharray:3 3}
+.id{fill:var(--p3-bg);stroke:var(--p3)}.id.d{stroke-dasharray:3 2}.id.w{stroke-width:2.5}
+.bd{stroke:var(--p1)}.bd.b2{fill:var(--p1-bg)}.bd.b3{fill:#0a2416}
+.tc{fill:#ff7a6e}.pt{stroke:var(--p3);stroke-width:.8}.pl{stroke:var(--p1);stroke-width:.8}
+.sp{stroke:var(--p1)}.sp.b2{fill:var(--p1-bg)}.sp.b3{fill:#0a2416}
+.et{fill:var(--p1-bg);stroke:var(--p1)}.sep{stroke:var(--p1);stroke-width:.6}
+.ky{fill:var(--p1-bg);stroke:var(--p1);stroke-width:2}.vl{fill:var(--p1-bg);stroke:var(--p1);stroke-width:2;stroke-dasharray:4 2}.hb{fill:var(--p2-bg);stroke:var(--p2)}
+.gx{transition:opacity .3s}
+.cap,.nav{display:none}.cap{margin-bottom:6px}.nav{justify-content:space-between;align-items:center}
+""" + "\n".join(rules)
+    still = """.gx{opacity:1!important}
+.info{display:none}"""
     return snippet(body, css, still, skin)
