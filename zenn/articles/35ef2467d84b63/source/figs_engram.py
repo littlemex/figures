@@ -210,7 +210,7 @@ def engram_map(skin="zenn-dark"):
     hz = D["hash"]; g = D["gate"]
     f = lambda x: f"{x:,}"
     o = []; add = o.append
-    W, H = 760, 400
+    W, H = 760, 364
     x = 4
     for i, tk in enumerate(toks + ["␣Hood ?"]):
         w = 16 + 7.2 * len(tk)
@@ -226,7 +226,7 @@ def engram_map(skin="zenn-dark"):
     add(f'<rect class="id d" x="4" y="106" width="96" height="18" rx="4"/><text class="nm" x="52" y="119" text-anchor="middle">({comp[P-1]}, {comp[P]})</text>')
     add(f'<rect class="id w" x="106" y="106" width="140" height="18" rx="4"/><text class="nm" x="176" y="119" text-anchor="middle">({comp[P-2]}, {comp[P-1]}, {comp[P]})</text></g>')
     add(f'<g class="gx g3"><text class="hd" x="4" y="138">3 × odd, XOR → one number</text><text class="nm" x="4" y="150">2-gram {f(hz["rolling_2gram"])}</text><text class="nm" x="4" y="161">3-gram {f(hz["rolling_3gram"])}</text></g>')
-    TY, BH = 186, 13.5
+    TY, BH = 182, 11.2
     add(f'<g class="gx g4"><text class="hd" x="4" y="{TY-6}">4 mod a prime = row id</text>')
     for c, h in enumerate(hs):
         y = TY + c * BH
@@ -247,14 +247,14 @@ def engram_map(skin="zenn-dark"):
     for c, h in enumerate(hs):
         y = TY + c * BH; ty = y + 1.5 + (BH - 4) * h["local_row"] / h["prime"]
         add(f'<line class="pl" x1="{X1}" y1="{ty:.1f}" x2="{RX}" y2="{y+6}"/><rect class="sp {"b2" if h["ngram"]==2 else "b3"}" x="{RX}" y="{y+1.5}" width="{64*CW}" height="{BH-4}"/>')
-    add(f'<text class="tn" x="{RX}" y="{TY + 16*BH + 10}">64 numbers per row, read by id</text></g>')
+    add(f'<text class="tn" x="{RX}" y="{TY + 16*BH + 9}">64 numbers per row, read by id</text></g>')
     FX = 548
-    add(f'<g class="gx g6"><path class="pl" d="M{RX+192} {TY+100} C {RX+204} {TY+100}, {FX-14} {TY+16}, {FX} {TY+16}" fill="none"/><text class="hd" x="{FX}" y="{TY-6}">6 join</text><rect class="et" x="{FX}" y="{TY+4}" width="208" height="22"/>')
+    add(f'<g class="gx g6"><path class="pl" d="M{RX+192} {TY+90} C {RX+204} {TY+90}, {FX-14} {TY+16}, {FX} {TY+16}" fill="none"/><text class="hd" x="{FX}" y="{TY-6}">6 join</text><rect class="et" x="{FX}" y="{TY+4}" width="208" height="22"/>')
     for c in range(1, 16): add(f'<line class="sep" x1="{FX + c*13:.0f}" y1="{TY+4}" x2="{FX + c*13:.0f}" y2="{TY+26}"/>')
     add(f'<text class="tn" x="{FX}" y="{TY+38}">16 rows × 64 = 1,024 numbers</text></g>')
     add(f'<g class="gx g7"><text class="hd" x="{FX}" y="{TY+60}">7 × W_kv (1,024 × 1,024), split</text><rect class="ky" x="{FX}" y="{TY+66}" width="102" height="22"/><text class="nm" x="{FX+51}" y="{TY+81}" text-anchor="middle">key 512</text><rect class="vl" x="{FX+106}" y="{TY+66}" width="102" height="22"/><text class="nm" x="{FX+157}" y="{TY+81}" text-anchor="middle">value 512</text></g>')
     add(f'<g class="gx g8"><text class="hd" x="{FX}" y="{TY+112}">8 compare h with key, once</text><rect class="hb" x="{FX}" y="{TY+118}" width="70" height="22"/><text class="nm" x="{FX+35}" y="{TY+133}" text-anchor="middle">h</text><text class="nm" x="{FX+76}" y="{TY+133}">·</text><rect class="ky" x="{FX+86}" y="{TY+118}" width="40" height="22"/><text class="nm" x="{FX+106}" y="{TY+133}" text-anchor="middle">key</text><text class="nm" x="{FX+132}" y="{TY+133}">→ gate</text><text class="nm b" x="{FX+176}" y="{TY+133}">{g["gate"]:.3f}</text></g>')
-    add(f'<g class="gx g9"><text class="hd" x="{FX}" y="{TY+164}">9 add</text><text class="nm" x="{FX}" y="{TY+184}">h + {g["gate"]:.3f} × value → block 1</text><text class="tn" x="{FX}" y="{TY+200}">h[0]: {D["h_first6"][0]} → {D["h_plus_first6"][0]}</text></g>')
+    add(f'<g class="gx g9"><text class="hd" x="{FX}" y="{TY+152}">9 add</text><text class="nm" x="{FX}" y="{TY+166}">h + {g["gate"]:.3f} × value → block 1</text><text class="tn" x="{FX}" y="{TY+178}">h[0]: {D["h_first6"][0]} → {D["h_plus_first6"][0]}</text></g>')
     svg = f'<svg class="mp" viewBox="0 0 {W} {H}">{"".join(o)}</svg>'
     m = D["multipliers"]
     caps = [
@@ -292,9 +292,9 @@ def engram_map(skin="zenn-dark"):
     for i in range(n):
         rules.append(f"#st-{i}:checked~.zr .k{i}{{display:block}}#st-{i}:checked~.zr .n{i}{{display:flex}}")
     css = """
-.mp{width:100%;height:auto;display:block}
+.mp{width:100%;height:auto;max-height:332px;display:block;margin:0 auto}
 .mp text{fill:var(--fg);font-size:11px}.mp .hd{font-weight:700;font-size:11.5px}.mp .nm{font-family:Menlo,Consolas,monospace;font-size:9.5px}
-.mp .tn{font-family:Menlo,Consolas,monospace;font-size:8.2px;fill:var(--mut)}.mp .b{fill:var(--p1);font-weight:700}.mp .yl{fill:var(--p3);font-weight:700;font-size:10px}
+.mp .tn{font-family:Menlo,Consolas,monospace;font-size:7.6px;fill:var(--mut)}.mp .b{fill:var(--p1);font-weight:700}.mp .yl{fill:var(--p3);font-weight:700;font-size:10px}
 .tk rect{fill:#1b1e23;stroke:var(--line)}.tk.ng rect{stroke:var(--p3)}.tk.cur rect{fill:var(--p3-bg);stroke:var(--p3);stroke-width:2}.tk.gh rect{fill:#000;stroke:var(--mut);stroke-dasharray:3 3}
 .id{fill:var(--p3-bg);stroke:var(--p3)}.id.d{stroke-dasharray:3 2}.id.w{stroke-width:2.5}
 .bd{stroke:var(--p1)}.bd.b2{fill:var(--p1-bg)}.bd.b3{fill:#0a2416}
@@ -303,7 +303,7 @@ def engram_map(skin="zenn-dark"):
 .et{fill:var(--p1-bg);stroke:var(--p1)}.sep{stroke:var(--p1);stroke-width:.6}
 .ky{fill:var(--p1-bg);stroke:var(--p1);stroke-width:2}.vl{fill:var(--p1-bg);stroke:var(--p1);stroke-width:2;stroke-dasharray:4 2}.hb{fill:var(--p2-bg);stroke:var(--p2)}
 .gx{transition:opacity .3s}
-.cap,.nav{display:none}.cap{margin-bottom:6px}.nav{justify-content:space-between;align-items:center}
+.cap,.nav{display:none}.cap{margin-bottom:2px;font-size:12px;line-height:1.45}.info{padding:6px 10px!important;min-height:0!important}.nav{justify-content:space-between;align-items:center}
 """ + "\n".join(rules)
     still = """.gx{opacity:1!important}
 .info{display:none}"""
