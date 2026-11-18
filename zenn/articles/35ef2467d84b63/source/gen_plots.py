@@ -1,6 +1,6 @@
 """gen_plots.py: the charts of the Engram hands-on article, from the published results and trace.
 
-    /usr/bin/python3 gen_plots.py <dir with summary.json, settling.json, nanogpt-hastings.json> <out_dir>
+    /usr/bin/python3 gen_plots.py <dir with summary.json, settling.json, redhood-forest.json> <out_dir>
 
 ZN-29: every series differs by colour (Okabe-Ito, safe for the common colour-vision deficiencies) and
 also by marker, line style or hatch, and is named by a label next to it, so no chart is read by colour
@@ -22,7 +22,7 @@ src, out = Path(sys.argv[1]), Path(sys.argv[2])
 out.mkdir(parents=True, exist_ok=True)
 summary = json.loads((src / "summary.json").read_text())
 settling = json.loads((src / "settling.json").read_text())
-trace = json.loads((src / "nanogpt-hastings.json").read_text())
+trace = json.loads((src / "redhood-forest.json").read_text())
 TOKENS_PER_STEP = 65_536
 
 plt.rcParams.update({"figure.facecolor": "#000000", "axes.facecolor": "#0b0f14", "axes.edgecolor": "#5a6270",
@@ -160,7 +160,7 @@ ax.set_xlim(-0.6, len(toks) - 0.4)
 ax.set_ylim(0, 1.05)
 ax.set_ylabel("gate α")
 ax.grid(axis="y", alpha=0.3)
-fig.suptitle('Gate α per token (seed 1337, 44 prompt tokens)', x=0.01, ha="left", fontsize=18, fontweight="bold")
+fig.suptitle(f'Gate α per token (seed 1337, {n_prompt} prompt tokens)', x=0.01, ha="left", fontsize=18, fontweight="bold")
 fig.tight_layout()
 fig.savefig(out / "gate-text.png", dpi=150)
 
